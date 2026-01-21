@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "534278519413",
+    "project_id": "whatsapp-pro-3d483",
+    "storage_bucket": "whatsapp-pro-3d483.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534278519413:android:d4cd32a6d6ffbcb8d0d63c",
+        "android_client_info": {
+          "package_name": "com.example.whatsapp_monitor_viewer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcD9xWKZd03npNxXZIVAQKtYtHbzsltC4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
