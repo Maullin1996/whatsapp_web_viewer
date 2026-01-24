@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_monitor_viewer/features/chats/presentation/helpers/map_failure_to_message.dart';
+import 'package:whatsapp_monitor_viewer/helpers/map_failure_to_message.dart';
+import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/active_chat_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/chats_provider.dart';
 
 class ChatList extends ConsumerWidget {
@@ -43,7 +44,9 @@ class ChatList extends ConsumerWidget {
                 time,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              onLongPress: () {},
+              onTap: () {
+                ref.read(activeChatProvider.notifier).select(chat);
+              },
             );
           },
           separatorBuilder: (_, _) => const Divider(height: 1),

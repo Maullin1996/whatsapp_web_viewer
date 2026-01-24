@@ -10,7 +10,7 @@ class ChatsFirestoreDatasource {
   Future<Either<Failure, List<Chat>>> fetchChats() async {
     try {
       final snapshot = await _db
-          .collection('whatsapp_uploads')
+          .collection('whatsapp_messages')
           .orderBy('messageTimestamp', descending: true)
           .limit(200)
           .get();
@@ -20,21 +20,21 @@ class ChatsFirestoreDatasource {
       for (final doc in snapshot.docs) {
         final data = doc.data();
 
-        final groupJid = data['groupJid'] as String;
+        final chatJid = data['chatJid'] as String;
         final groupName = data['groupName'] as String;
         final ts = data['messageTimestamp'] as int;
 
-        if (!map.containsKey(groupJid)) {
-          map[groupJid] = Chat(
-            groupJid: groupJid,
+        if (!map.containsKey(chatJid)) {
+          map[chatJid] = Chat(
+            chatJid: chatJid,
             groupName: groupName,
             lastMessageAt: ts,
             count: 1,
           );
         } else {
-          final old = map[groupJid]!;
-          map[groupJid] = Chat(
-            groupJid: old.groupJid,
+          final old = map[chatJid]!;
+          map[chatJid] = Chat(
+            chatJid: old.chatJid,
             groupName: old.groupName,
             lastMessageAt: old.lastMessageAt,
             count: old.count + 1,
