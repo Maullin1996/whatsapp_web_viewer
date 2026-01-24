@@ -15,7 +15,9 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
+        backgroundColor: Colors.grey[400],
         title: const Text('WhatsApp Monitor Viewer'),
         actions: [
           IconButton(onPressed: _logout, icon: const Icon(Icons.logout)),
