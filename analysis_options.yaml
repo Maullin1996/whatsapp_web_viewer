@@ -48,4 +48,3 @@ dart_code_linter:
     - prefer-conditional-expressions
     - no-equal-then-else
     - prefer-moving-to-variable
-    - prefer-match-file-name

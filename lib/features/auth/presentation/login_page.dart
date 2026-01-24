@@ -1,10 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
+  Future<void> _login() async {
+    await FirebaseAuth.instance.signInAnonymously();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      body: Center(
+        child: ElevatedButton(onPressed: _login, child: const Text('Entrar')),
+      ),
+    );
   }
 }
