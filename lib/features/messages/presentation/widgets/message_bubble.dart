@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_detail_page.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_view_item.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -37,14 +39,32 @@ class MessageBubble extends StatelessWidget {
               ),
             ),
           if (message.hasMedia && message.imageUrl != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Image.network(
-                message.imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) {
-                  return Image.asset("assets/images/loading.gif");
-                },
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ImageDetailPage(
+                      initialIndex: 0,
+                      items: [
+                        ImageViewItem(
+                          url: message.imageUrl!,
+                          senderName: message.senderName,
+                          messageTimestamp: message.messageTimestamp,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.network(
+                  message.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) {
+                    return Image.asset("assets/images/loading.gif");
+                  },
+                ),
               ),
             ),
           if (message.caption != null && message.caption!.isNotEmpty)
