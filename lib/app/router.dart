@@ -1,34 +1,27 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:whatsapp_monitor_viewer/features/auth/presentation/login_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:whatsapp_monitor_viewer/features/auth/presentation/pages/login_page.dart';
+import 'package:whatsapp_monitor_viewer/features/auth/presentation/providers/auth_provider.dart';
+import 'package:whatsapp_monitor_viewer/features/auth/presentation/providers/auth_state.dart';
 import 'package:whatsapp_monitor_viewer/features/home/presentation/home_page.dart';
 
-class AppRouter extends StatefulWidget {
-  const AppRouter({super.key});
+final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authProvider);
 
-  @override
-  State<AppRouter> createState() => _AppRouterState();
-}
-
-class _AppRouterState extends State<AppRouter> {
-  User? user;
-
-  @override
-  void initState() {
-    super.initState();
-    FirebaseAuth.instance.authStateChanges().listen((userState) {
-      setState(() {
-        user = userState;
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (user == null) {
-      return const LoginPage();
-    }
-
-    return const HomePage();
-  }
-}
+  return GoRouter(
+    initialLocation: '/login',
+    redirect: (context, state) {
+      return authState.when(
+        loading: () => null,
+        authenticated: (_) => state.matchedLocation == '/home' ? null : '/home',
+        unauthenticated: () =>
+            state.matchedLocation == '/login' ? null : '/login',
+        error: (_) => '/login',
+      );
+    },
+    routes: [
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+    ],
+  );
+});
