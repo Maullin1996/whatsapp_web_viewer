@@ -48,6 +48,10 @@ class AuthNotifier extends Notifier<AuthState> {
       (_) => state = const AuthState.unauthenticated(),
     );
   }
+
+  void clearError() {
+    state = const AuthState.unauthenticated();
+  }
 }
 
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(
