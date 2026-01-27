@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/active_chat_provider.dart';
@@ -8,24 +7,12 @@ import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/m
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  Future<void> _logout() async {
-    await FirebaseAuth.instance.signOut();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[400],
-        title: const Text('WhatsApp Monitor Viewer'),
-        actions: [
-          IconButton(onPressed: _logout, icon: const Icon(Icons.logout)),
-        ],
-      ),
       body: Row(
         children: [
-          const SizedBox(width: 320, child: ChatList()),
+          Container(color: Colors.white, width: 370, child: ChatList()),
           const VerticalDivider(width: 1),
           Expanded(
             child: Consumer(

@@ -109,6 +109,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       'assets/images/WhatsApp_icon.png',
                       width: 100,
                       height: 100,
+                      cacheWidth: 110,
                     ),
                     const SizedBox(height: 16),
                     const Text(
