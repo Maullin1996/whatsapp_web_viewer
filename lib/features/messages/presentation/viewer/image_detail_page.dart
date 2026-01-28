@@ -1,8 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp_monitor_viewer/features/images/presentation/controllers/image_zoom_controller.dart';
-import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_view_item.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/image_view_item.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/nav_button.dart';
 
 class ImageDetailPage extends StatefulWidget {
@@ -68,7 +67,7 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
             child: PageView.builder(
               controller: _controller,
               itemCount: widget.items.length,
-              onPageChanged: (value) => setState(() => _index = 1),
+              onPageChanged: (value) => setState(() => _index = value),
               itemBuilder: (_, index) {
                 final item = widget.items[index];
                 return Center(
@@ -84,24 +83,32 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
                       maxScale: ImageZoomController.maxScale,
                       panEnabled: _zoom.scale > 1.0,
                       scaleEnabled: false,
-                      child: CachedNetworkImage(
-                        memCacheHeight: 1600,
-                        maxHeightDiskCache: 1600,
-                        imageUrl: item.url,
-                        fit: BoxFit.contain,
-                        fadeInDuration: const Duration(milliseconds: 120),
-                        placeholder: (context, url) => Center(
-                          child: SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 80),
+                        child: Image.network(
+                          cacheWidth: 1600,
+                          cacheHeight: 1600,
+                          item.url,
+                          fit: BoxFit.contain,
+                          webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              height: 200,
+                              color: Colors.black12,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          },
+                          errorBuilder: (_, _, _) => Container(
+                            height: 200,
+                            color: Colors.black12,
+                            child: const Center(
+                              child: Icon(Icons.broken_image),
+                            ),
                           ),
                         ),
-                        errorWidget: (context, error, stackTrace) =>
-                            Image.asset(
-                              "assets/images/loading.gif",
-                              fit: BoxFit.contain,
-                            ),
                       ),
                     ),
                   ),

@@ -1,54 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/helpers/format_day_label.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/image_url_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_bubble.dart';
-import 'package:whatsapp_monitor_viewer/helpers/map_failure_to_message.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/messages_provider.dart';
 
-class MessageList extends ConsumerWidget {
+class MessageList extends ConsumerStatefulWidget {
   const MessageList({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MessageList> createState() => _MessageListState();
+}
+
+class _MessageListState extends ConsumerState<MessageList> {
+  late final ScrollController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController()..addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_controller.hasClients) return;
+    if (_controller.position.pixels >=
+        _controller.position.maxScrollExtent - 200) {
+      ref.read(messagesProvider.notifier).loadMore();
+    }
+  }
+
+  void _preloadNearByImages({
+    required WidgetRef ref,
+    required List<Message> messages,
+    required int index,
+  }) {
+    const preloadAhead = 6;
+
+    for (int i = index; i < index + preloadAhead && i < messages.length; i++) {
+      final msg = messages[i];
+      if (msg.isImage) {
+        ref.read(imageUrlProvider(msg.storagePath!).future);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(messagesProvider);
-    return Scaffold(
-      appBar: AppBar(backgroundColor: const Color.fromARGB(255, 235, 234, 234)),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: AssetImage('assets/images/fondo.png'),
+    return state.when(
+      data: (messages) {
+        if (messages.isEmpty) {
+          return const Center(child: Text('Sin Mensajes'));
+        }
+        return Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.cover,
+
+              image: AssetImage('assets/images/fondo.png'),
+            ),
           ),
-        ),
-        child: state.when(
-          data: (messages) {
-            if (messages.isEmpty) {
-              return const Center(child: Text('Sin Mensajes'));
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.only(bottom: 12),
-              reverse: true,
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final msg = messages[index];
+          child: ListView.builder(
+            controller: _controller,
+            padding: const EdgeInsets.only(bottom: 12),
+            reverse: true,
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              final msg = messages[index];
 
-                final prevMsg = index + 1 < messages.length
-                    ? messages[index + 1]
-                    : null;
+              _preloadNearByImages(ref: ref, messages: messages, index: index);
 
-                final showSenderName =
-                    prevMsg == null || prevMsg.senderName != msg.senderName;
+              final prevMsg = index + 1 < messages.length
+                  ? messages[index + 1]
+                  : null;
 
-                final showDateSeparator =
-                    prevMsg == null ||
-                    DateTime.fromMillisecondsSinceEpoch(
-                          msg.messageTimestamp,
-                        ).toLocal().day !=
-                        DateTime.fromMillisecondsSinceEpoch(
-                          prevMsg.messageTimestamp,
-                        ).toLocal().day;
+              final showSenderName =
+                  prevMsg == null || prevMsg.senderName != msg.senderName;
 
-                return Column(
+              final showDateSeparator =
+                  prevMsg == null ||
+                  DateTime.fromMillisecondsSinceEpoch(
+                        msg.messageTimestamp,
+                      ).toLocal().day !=
+                      DateTime.fromMillisecondsSinceEpoch(
+                        prevMsg.messageTimestamp,
+                      ).toLocal().day;
+
+              return RepaintBoundary(
+                key: ValueKey(msg.id),
+                child: Column(
                   children: [
                     if (showDateSeparator)
                       Padding(
@@ -82,21 +129,28 @@ class MessageList extends ConsumerWidget {
                       ),
                     ),
                   ],
-                );
-              },
-            );
-          },
-          error: (error, _) {
-            final message = mapFailureToMessage(error);
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(message, textAlign: TextAlign.center),
-              ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
+                ),
+              );
+            },
+          ),
+        );
+      },
+      error: (error, _) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(error.toString(), textAlign: TextAlign.center),
+          ),
+        );
+      },
+      loading: () => Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: const AssetImage('assets/images/fondo.png'),
+          ),
         ),
+        child: Center(child: CircularProgressIndicator()),
       ),
     );
   }

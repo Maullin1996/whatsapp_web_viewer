@@ -1,7 +1,16 @@
 import 'package:dartz/dartz.dart';
 import 'package:whatsapp_monitor_viewer/core/errors/failure.dart';
-import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/messages_page.dart';
 
 abstract class MessagesRepository {
-  Future<Either<Failure, List<Message>>> getMessages(String chatJid);
+  Future<Either<Failure, MessagesPage>> fetchInitial({
+    required String chatJid,
+    int limit = 50,
+  });
+
+  Future<Either<Failure, MessagesPage>> fetchNext({
+    required String chatJid,
+    required Object cursor,
+    int limit = 50,
+  });
 }
