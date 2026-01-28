@@ -1,0 +1,37 @@
+import 'package:flutter/material.dart';
+
+class CustomMessageGroup extends StatelessWidget {
+  const CustomMessageGroup({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 360),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // 🔑 clave
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
+              child: Image.asset('assets/images/mensaje.png'),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Selecciona un grupo para continuar',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                fontSize: 28,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

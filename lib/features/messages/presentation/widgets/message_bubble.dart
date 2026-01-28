@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/image_url_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_detail_page.dart';
-import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_view_item.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/image_view_item.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_information_widget.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -32,52 +35,29 @@ class MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
                 message.senderName,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Colors.teal,
                 ),
               ),
             ),
-          if (message.hasMedia && message.imageUrl != null)
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ImageDetailPage(
-                      initialIndex: 0,
-                      items: [
-                        ImageViewItem(
-                          url: message.imageUrl!,
-                          senderName: message.senderName,
-                          messageTimestamp: message.messageTimestamp,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.network(
-                  message.imageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) {
-                    return Image.asset("assets/images/loading.gif");
-                  },
-                ),
-              ),
-            ),
+          if (message.isImage) _ImagePreview(storagePath: message.storagePath!),
           if (message.caption != null && message.caption!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
+            Container(
+              margin: EdgeInsets.only(bottom: 8),
               child: Text(
                 message.caption!,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
+          MessageInformationWidget(
+            senderName: message.senderName,
+            shift: message.shiftName,
+            date: message.localTime,
+          ),
           const SizedBox(height: 4),
           Align(
-            alignment: AlignmentGeometry.bottomRight,
+            alignment: Alignment.bottomRight,
             child: Text(
               time,
               style: Theme.of(
@@ -87,6 +67,65 @@ class MessageBubble extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ImagePreview extends ConsumerWidget {
+  final String storagePath;
+  const _ImagePreview({required this.storagePath});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final urlAsync = ref.watch(imageUrlProvider(storagePath));
+
+    return urlAsync.when(
+      data: (url) => InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ImageDetailPage(
+                initialIndex: 0,
+                items: [
+                  ImageViewItem(url: url, senderName: '', messageTimestamp: 0),
+                ],
+              ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: Image.network(
+              url,
+              fit: BoxFit.cover,
+              webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  height: 200,
+                  color: Colors.black12,
+                  child: const Center(child: CircularProgressIndicator()),
+                );
+              },
+              errorBuilder: (_, _, _) => Container(
+                height: 200,
+                color: Colors.black12,
+                child: const Center(child: Icon(Icons.broken_image)),
+              ),
+            ),
+          ),
+        ),
+      ),
+      error: (_, _) => Center(
+        child: Container(
+          height: 200,
+          color: Colors.black12,
+          child: const Icon(Icons.broken_image),
+        ),
+      ),
+      loading: () => Center(child: CircularProgressIndicator()),
     );
   }
 }

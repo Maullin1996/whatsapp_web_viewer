@@ -19,7 +19,7 @@ class CustomLoginTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 18),
       decoration: BoxDecoration(
         color: const Color.fromARGB(96, 236, 248, 240),
         border: Border.all(
@@ -36,6 +36,7 @@ class CustomLoginTextFormField extends StatelessWidget {
         decoration: InputDecoration(
           border: InputBorder.none,
           labelText: labelText,
+          floatingLabelStyle: TextStyle(color: Colors.black),
         ),
         obscureText: obscureText,
       ),

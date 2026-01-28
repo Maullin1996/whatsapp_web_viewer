@@ -216,7 +216,7 @@ class _CustonGroupContainerState extends State<CustonGroupContainer> {
             children: [
               ClipOval(
                 child: Image.asset(
-                  'assets/images/blank-profile.webp',
+                  'assets/images/blank-profile.png',
                   width: 55,
                   fit: BoxFit.cover,
                   cacheWidth: 110,

@@ -4,33 +4,70 @@ import 'package:whatsapp_monitor_viewer/core/errors/failure.dart';
 import 'package:whatsapp_monitor_viewer/core/errors/firestore_failure.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/data/models/raw_message_model.dart';
 
+class FirestoreMessagePage {
+  final List<RawMessageModel> items;
+  final DocumentSnapshot? lastDoc;
+
+  const FirestoreMessagePage({required this.items, required this.lastDoc});
+}
+
 class MessagesFirestoreDatasource {
-  final FirebaseFirestore _db;
+  final FirebaseFirestore _firestore;
 
-  const MessagesFirestoreDatasource(this._db);
+  const MessagesFirestoreDatasource(this._firestore);
 
-  Future<Either<Failure, List<RawMessageModel>>> fetchMessages(
-    String chatJid,
-  ) async {
+  static const _pageSize = 50;
+
+  Future<Either<Failure, FirestoreMessagePage>> fetchInitial({
+    required String chatJid,
+    int limit = _pageSize,
+  }) async {
     try {
-      final snapshot = await _db
+      final query = await _firestore
           .collection('whatsapp_messages')
           .where('chatJid', isEqualTo: chatJid)
           .orderBy('messageTimestamp', descending: true)
-          .limit(50)
+          .limit(limit)
           .get();
-      final messages = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return RawMessageModel(
-          id: doc.id,
-          senderName: data['senderName'] as String,
-          caption: data['caption'] as String?,
-          storagePath: data['storagePath'] as String?,
-          hasMedia: data['hasMedia'] as bool,
-          messageTimestamp: data['messageTimestamp'] as int,
-        );
-      }).toList();
-      return Right(messages);
+
+      final items = query.docs
+          .map((doc) => RawMessageModel.fromFirestore(doc.id, doc.data()))
+          .toList();
+
+      return Right(
+        FirestoreMessagePage(
+          items: items,
+          lastDoc: query.docs.isNotEmpty ? query.docs.last : null,
+        ),
+      );
+    } catch (e) {
+      return Left(mapFirestoreError(e));
+    }
+  }
+
+  Future<Either<Failure, FirestoreMessagePage>> fetchNext({
+    required String chatJid,
+    required DocumentSnapshot lastDoc,
+    int limit = _pageSize,
+  }) async {
+    try {
+      final query = await _firestore
+          .collection('whatsapp_messages')
+          .where('chatJid', isEqualTo: chatJid)
+          .orderBy('messageTimestamp', descending: true)
+          .startAfterDocument(lastDoc)
+          .limit(limit)
+          .get();
+      final items = query.docs
+          .map((doc) => RawMessageModel.fromFirestore(doc.id, doc.data()))
+          .toList();
+
+      return Right(
+        FirestoreMessagePage(
+          items: items,
+          lastDoc: query.docs.isNotEmpty ? query.docs.last : null,
+        ),
+      );
     } catch (e) {
       return Left(mapFirestoreError(e));
     }
