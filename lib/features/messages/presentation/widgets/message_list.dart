@@ -57,7 +57,20 @@ class _MessageListState extends ConsumerState<MessageList> {
     return state.when(
       data: (messages) {
         if (messages.isEmpty) {
-          return const Center(child: Text('Sin Mensajes'));
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage('assets/images/fondo.png'),
+              ),
+            ),
+            child: const Center(
+              child: Text(
+                'Sin Mensajes',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+            ),
+          );
         }
         return Container(
           decoration: BoxDecoration(
@@ -139,7 +152,11 @@ class _MessageListState extends ConsumerState<MessageList> {
         return Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(error.toString(), textAlign: TextAlign.center),
+            child: Text(
+              error.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         );
       },

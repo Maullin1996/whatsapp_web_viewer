@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/helpers/find_initial_index.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/chat_image_items_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/image_url_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_detail_page.dart';
-import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/image_view_item.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_information_widget.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -50,11 +51,7 @@ class MessageBubble extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
-          MessageInformationWidget(
-            senderName: message.senderName,
-            shift: message.shiftName,
-            date: message.localTime,
-          ),
+          MessageInformationWidget(message: message),
           const SizedBox(height: 4),
           Align(
             alignment: Alignment.bottomRight,
@@ -82,14 +79,19 @@ class _ImagePreview extends ConsumerWidget {
     return urlAsync.when(
       data: (url) => InkWell(
         onTap: () {
+          final items = ref.read(chatImageItemsProvider);
+
+          if (items.isEmpty) return;
+
+          final initialIndex = findInitialIndex(
+            items: items,
+            storagePath: storagePath,
+          );
+
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => ImageDetailPage(
-                initialIndex: 0,
-                items: [
-                  ImageViewItem(url: url, senderName: '', messageTimestamp: 0),
-                ],
-              ),
+              builder: (_) =>
+                  ImageDetailPage(initialIndex: initialIndex, items: items),
             ),
           );
         },

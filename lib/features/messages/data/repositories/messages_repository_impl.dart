@@ -34,7 +34,6 @@ class MessagesRepositoryImpl implements MessagesRepository {
                 caption: raw.caption,
                 storagePath: raw.storagePath,
                 localTime: raw.localTime,
-                shiftName: raw.shiftName,
               ),
             )
             .toList(),
@@ -68,7 +67,6 @@ class MessagesRepositoryImpl implements MessagesRepository {
                 caption: raw.caption,
                 storagePath: raw.storagePath,
                 localTime: raw.localTime,
-                shiftName: raw.shiftName,
               ),
             )
             .toList(),
