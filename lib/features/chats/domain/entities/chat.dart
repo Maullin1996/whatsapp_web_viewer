@@ -1,3 +1,4 @@
+//lib/feature/chats/domain/entities/chat.dart
 class Chat {
   final String chatJid;
   final String groupName;

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/helpers/find_initial_index.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/chat_image_items_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/image_url_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_detail_page.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/custom_rich_text.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_information_widget.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -34,7 +36,7 @@ class MessageBubble extends StatelessWidget {
           if (showSenderName && message.senderName.trim().isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
+              child: SelectableText(
                 message.senderName,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w600,
@@ -46,9 +48,9 @@ class MessageBubble extends StatelessWidget {
           if (message.caption != null && message.caption!.isNotEmpty)
             Container(
               margin: EdgeInsets.only(bottom: 8),
-              child: Text(
-                message.caption!,
-                style: Theme.of(context).textTheme.bodyMedium,
+              child: CustomRichText(
+                keyParam: 'Mensaje:  ',
+                valueParam: message.caption!,
               ),
             ),
           MessageInformationWidget(message: message),
@@ -80,7 +82,6 @@ class _ImagePreview extends ConsumerWidget {
       data: (url) => InkWell(
         onTap: () {
           final items = ref.read(chatImageItemsProvider);
-
           if (items.isEmpty) return;
 
           final initialIndex = findInitialIndex(
@@ -90,31 +91,57 @@ class _ImagePreview extends ConsumerWidget {
 
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) =>
-                  ImageDetailPage(initialIndex: initialIndex, items: items),
+              builder: (_) => ImageDetailPage(initialIndex: initialIndex),
             ),
           );
         },
         child: Padding(
           padding: const EdgeInsets.only(bottom: 6),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Image.network(
-              url,
-              fit: BoxFit.cover,
-              webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 200,
-                  color: Colors.black12,
-                  child: const Center(child: CircularProgressIndicator()),
-                );
-              },
-              errorBuilder: (_, _, _) => Container(
-                height: 200,
-                color: Colors.black12,
-                child: const Center(child: Icon(Icons.broken_image)),
+          child: Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: RepaintBoundary(
+                child: ExtendedImage.network(
+                  url,
+                  fit: BoxFit.cover,
+                  cache: true,
+                  border: Border.all(color: Colors.transparent, width: 0),
+                  borderRadius: BorderRadius.circular(6),
+                  loadStateChanged: (ExtendedImageState state) {
+                    switch (state.extendedImageLoadState) {
+                      case LoadState.loading:
+                        return Container(
+                          height: 200,
+                          color: Colors.black12,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      case LoadState.completed:
+                        return null; // Muestra la imagen normalmente
+                      case LoadState.failed:
+                        return GestureDetector(
+                          onTap: () {
+                            state.reLoadImage();
+                          },
+                          child: Container(
+                            height: 200,
+                            color: Colors.black12,
+                            child: const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.broken_image, size: 40),
+                                  SizedBox(height: 8),
+                                  Text('Toca para reintentar'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                    }
+                  },
+                ),
               ),
             ),
           ),
@@ -127,7 +154,7 @@ class _ImagePreview extends ConsumerWidget {
           child: const Icon(Icons.broken_image),
         ),
       ),
-      loading: () => Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }

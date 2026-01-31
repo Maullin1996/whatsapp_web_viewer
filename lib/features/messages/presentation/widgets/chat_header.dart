@@ -12,7 +12,7 @@ class ChatHeader extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -20,10 +20,9 @@ class ChatHeader extends ConsumerWidget {
         ),
       ),
       alignment: Alignment.centerLeft,
-      child: Text(
+      child: SelectableText(
         chat.groupName,
         maxLines: 1,
-        overflow: TextOverflow.ellipsis,
         style: Theme.of(
           context,
         ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),

@@ -74,4 +74,15 @@ class MessagesRepositoryImpl implements MessagesRepository {
       ),
     );
   }
+
+  @override
+  Stream<Message> listenNewMessages({
+    required String chatJid,
+    required int afterTimestamp,
+  }) {
+    return datasource.listemNewMessages(
+      chatJid: chatJid,
+      afterTimestamp: afterTimestamp,
+    );
+  }
 }

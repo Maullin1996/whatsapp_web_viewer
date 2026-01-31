@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/app/providers.dart';
-import 'package:whatsapp_monitor_viewer/features/auth/domain/repository/auth_repository.dart';
+import 'package:whatsapp_monitor_viewer/features/auth/domain/repositories/auth_repository.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/presentation/providers/auth_state.dart';
 
 class AuthNotifier extends Notifier<AuthState> {

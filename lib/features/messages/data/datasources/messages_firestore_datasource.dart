@@ -3,6 +3,8 @@ import 'package:dartz/dartz.dart';
 import 'package:whatsapp_monitor_viewer/core/errors/failure.dart';
 import 'package:whatsapp_monitor_viewer/core/errors/firestore_failure.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/data/models/raw_message_model.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/helpers/to_domain.dart';
 
 class FirestoreMessagePage {
   final List<RawMessageModel> items;
@@ -71,5 +73,28 @@ class MessagesFirestoreDatasource {
     } catch (e) {
       return Left(mapFirestoreError(e));
     }
+  }
+
+  Stream<Message> listemNewMessages({
+    required String chatJid,
+    required int afterTimestamp,
+  }) {
+    final query = _firestore
+        .collection('whatsapp_messages')
+        .where('chatJid', isEqualTo: chatJid)
+        .where('messageTimestamp', isGreaterThan: afterTimestamp)
+        .orderBy('messageTimestamp', descending: false);
+
+    return query
+        .snapshots()
+        .expand((snapshot) {
+          return snapshot.docChanges
+              .where((c) => c.type == DocumentChangeType.added)
+              .map((c) => c.doc);
+        })
+        .map((doc) {
+          final raw = RawMessageModel.fromFirestore(doc.id, doc.data()!);
+          return toDomain(raw);
+        });
   }
 }

@@ -3,7 +3,7 @@ import 'package:whatsapp_monitor_viewer/core/errors/auth_failure.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/data/datasources/firebase_auth_datasource.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/domain/entities/authenticated_user.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/domain/helpers/map_to_domain.dart';
-import 'package:whatsapp_monitor_viewer/features/auth/domain/repository/auth_repository.dart';
+import 'package:whatsapp_monitor_viewer/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuthDatasource _datasource;

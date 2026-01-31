@@ -6,6 +6,7 @@ import 'package:whatsapp_monitor_viewer/features/chats/data/datasources/chats_fi
 import 'package:whatsapp_monitor_viewer/features/chats/domain/entities/chat.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/domain/repositories/chats_repository.dart';
 
+//lib/feature/chats/data/repositories/chats_repository_impl.dart
 class ChatsRepositoryImpl implements ChatsRepository {
   final ChatsFirestoreDatasource datasource;
 
@@ -57,5 +58,23 @@ class ChatsRepositoryImpl implements ChatsRepository {
     } catch (_) {
       return const Left(Failure.unknown());
     }
+  }
+
+  @override
+  Stream<Chat> listenChatUpdate() {
+    return datasource.listenNewMessages().map((data) {
+      final chatJid = data['chatJid'] as String;
+      final groupName = data['groupName'] as String;
+      final ts = data['messageTimestamp'];
+
+      final timestamp = ts is int ? ts : int.parse(ts.toString());
+
+      return Chat(
+        chatJid: chatJid,
+        groupName: groupName,
+        lastMessageAt: timestamp,
+        count: 1,
+      );
+    });
   }
 }

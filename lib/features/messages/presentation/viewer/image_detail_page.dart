@@ -3,21 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/core/time/shifts.dart';
-import 'package:whatsapp_monitor_viewer/features/images/presentation/controllers/image_zoom_controller.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/controllers/image_zoom_controller.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/image_view_item.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/chat_image_items_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/image_url_provider.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/messages_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_controler_actions.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/nav_button.dart';
 
 class ImageDetailPage extends ConsumerStatefulWidget {
   final int initialIndex;
-  final List<ImageViewItem> items;
 
-  const ImageDetailPage({
-    super.key,
-    required this.initialIndex,
-    required this.items,
-  });
+  const ImageDetailPage({super.key, required this.initialIndex});
 
   @override
   ConsumerState<ImageDetailPage> createState() => _ImageDetailPageState();
@@ -43,14 +40,23 @@ class _ImageDetailPageState extends ConsumerState<ImageDetailPage> {
     super.dispose();
   }
 
-  void _onPageChanged(int value) {
-    setState(() => _index = value);
+  void _onPageChanged(int index) {
+    setState(() => _index = index);
     _zoom.reset();
+    final items = ref.read(chatImageItemsProvider);
+    if (index >= items.length - 3) {
+      ref.read(messagesProvider.notifier).loadMore();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final item = widget.items[_index];
+    final items = ref.watch(chatImageItemsProvider);
+    if (items.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final safeIndex = _index.clamp(0, items.length - 1);
+    final item = items[safeIndex];
     final date = DateTime.fromMillisecondsSinceEpoch(
       item.messageTimestamp,
     ).toLocal();
@@ -58,98 +64,89 @@ class _ImageDetailPageState extends ConsumerState<ImageDetailPage> {
     final shift = getCurrentShift(date);
     final shiftLabel = shiftNames[shift]!;
 
-    return Focus(
+    return FocusableActionDetector(
       autofocus: true,
-      descendantsAreFocusable: false,
-      canRequestFocus: true,
-      child: Shortcuts(
-        shortcuts: {
-          // Navegación
-          LogicalKeySet(LogicalKeyboardKey.arrowRight): const NextImageIntent(),
-          LogicalKeySet(LogicalKeyboardKey.arrowLeft):
-              const PreviousImageIntent(),
-          //cerrar
-          LogicalKeySet(LogicalKeyboardKey.escape): const CloseViewerIntent(),
-          //Zoom
-          LogicalKeySet(LogicalKeyboardKey.equal): const ZoomInIntent(),
-          LogicalKeySet(LogicalKeyboardKey.minus): const ZoomOutIntent(),
-          LogicalKeySet(LogicalKeyboardKey.digit0): const ZoomResetIntent(),
-        },
-        child: Actions(
-          actions: {
-            NextImageIntent: CallbackAction<NextImageIntent>(
-              onInvoke: (_) {
-                if (_index < widget.items.length - 1) {
-                  _controller.nextPage(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                  );
-                }
-                return null;
-              },
-            ),
-            PreviousImageIntent: CallbackAction<PreviousImageIntent>(
-              onInvoke: (_) {
-                if (_index > 0) {
-                  _controller.previousPage(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                  );
-                }
-                return null;
-              },
-            ),
-            CloseViewerIntent: CallbackAction<CloseViewerIntent>(
-              onInvoke: (_) {
-                Navigator.pop(context);
-                return null;
-              },
-            ),
-            ZoomInIntent: CallbackAction<ZoomInIntent>(
-              onInvoke: (_) {
-                _zoom.zoomIn();
-                return null;
-              },
-            ),
-            ZoomOutIntent: CallbackAction<ZoomOutIntent>(
-              onInvoke: (_) {
-                _zoom.zoomOut();
-                return null;
-              },
-            ),
-            ZoomResetIntent: CallbackAction<ZoomResetIntent>(
-              onInvoke: (_) {
-                _zoom.reset();
-                return null;
-              },
-            ),
+      shortcuts: {
+        LogicalKeySet(LogicalKeyboardKey.arrowRight): const NextImageIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowLeft):
+            const PreviousImageIntent(),
+        LogicalKeySet(LogicalKeyboardKey.escape): const CloseViewerIntent(),
+        LogicalKeySet(LogicalKeyboardKey.equal): const ZoomInIntent(),
+        LogicalKeySet(LogicalKeyboardKey.minus): const ZoomOutIntent(),
+        LogicalKeySet(LogicalKeyboardKey.digit0): const ZoomResetIntent(),
+      },
+      actions: {
+        NextImageIntent: CallbackAction<NextImageIntent>(
+          onInvoke: (_) {
+            if (_index < items.length - 1) {
+              _controller.nextPage(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              );
+            }
+            return null;
           },
-          child: Scaffold(
-            backgroundColor: Colors.white,
-            body: Column(
-              children: [
-                _ViwerTopBar(
-                  shift: shiftLabel,
-                  name: item.senderName,
-                  localTime: item.localTime,
-                  zoomOut: _zoom.zoomOut,
-                  zoomIn: _zoom.zoomIn,
-                  zoomRest: _zoom.reset,
-                  close: () => Navigator.pop(context),
-                ),
-                Expanded(
-                  child: _ImagePager(
-                    currentIndex: _index,
-                    controller: _controller,
-                    items: widget.items,
-                    zoom: _zoom,
-                    onPageChanged: _onPageChanged,
-                  ),
-                ),
-                _ImageIndexIndicator(index: _index, total: widget.items.length),
-              ],
+        ),
+        PreviousImageIntent: CallbackAction<PreviousImageIntent>(
+          onInvoke: (_) {
+            if (_index > 0) {
+              _controller.previousPage(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              );
+            }
+            return null;
+          },
+        ),
+        CloseViewerIntent: CallbackAction<CloseViewerIntent>(
+          onInvoke: (_) {
+            Navigator.pop(context);
+            return null;
+          },
+        ),
+        ZoomInIntent: CallbackAction<ZoomInIntent>(
+          onInvoke: (_) {
+            _zoom.zoomIn();
+            return null;
+          },
+        ),
+        ZoomOutIntent: CallbackAction<ZoomOutIntent>(
+          onInvoke: (_) {
+            _zoom.zoomOut();
+            return null;
+          },
+        ),
+        ZoomResetIntent: CallbackAction<ZoomResetIntent>(
+          onInvoke: (_) {
+            _zoom.reset();
+            return null;
+          },
+        ),
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            _ViwerTopBar(
+              shift: shiftLabel,
+              name: item.senderName,
+              localTime: item.localTime,
+              zoomOut: _zoom.zoomOut,
+              zoomIn: _zoom.zoomIn,
+              zoomRest: _zoom.reset,
+              close: () => Navigator.pop(context),
             ),
-          ),
+            Expanded(
+              child: _ImagePager(
+                currentIndex: _index,
+                controller: _controller,
+                items: items,
+                zoom: _zoom,
+                onPageChanged: _onPageChanged,
+              ),
+            ),
+            _ImageIndexIndicator(index: _index, total: items.length),
+          ],
         ),
       ),
     );
@@ -312,15 +309,15 @@ class _ViwerTopBar extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                SelectableText(
                   name,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
-                Text(localTime, style: const TextStyle(fontSize: 16)),
-                Text(shift, style: const TextStyle(fontSize: 16)),
+                SelectableText(localTime, style: const TextStyle(fontSize: 16)),
+                SelectableText(shift, style: const TextStyle(fontSize: 16)),
               ],
             ),
           ),
