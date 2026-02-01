@@ -1,3 +1,4 @@
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -236,7 +237,7 @@ class _ImagePager extends ConsumerWidget {
 
 class _ImageCanvas extends StatelessWidget {
   final ImageZoomController zoom;
-  final AsyncValue<String> urlAsync;
+  final String urlAsync;
   const _ImageCanvas({required this.zoom, required this.urlAsync});
 
   @override
@@ -254,16 +255,46 @@ class _ImageCanvas extends StatelessWidget {
           maxScale: ImageZoomController.maxScale,
           panEnabled: zoom.scale > 1.0,
           scaleEnabled: false,
-          child: urlAsync.when(
-            data: (url) => Image.network(
-              url,
-              fit: BoxFit.contain,
-              cacheWidth: 1600,
-              cacheHeight: 1600,
-              webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
-            ),
-            loading: () => const CircularProgressIndicator(),
-            error: (_, _) => const Icon(Icons.broken_image),
+          child: ExtendedImage.network(
+            urlAsync,
+            fit: BoxFit.contain,
+            cache: true,
+            cacheWidth: 1600,
+            cacheHeight: 1600,
+            loadStateChanged: (ExtendedImageState state) {
+              switch (state.extendedImageLoadState) {
+                case LoadState.loading:
+                  return Container(
+                    height: 200,
+                    width: 200,
+                    color: Colors.black12,
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
+                case LoadState.completed:
+                  return null; // Muestra la imagen normalmente
+                case LoadState.failed:
+                  return GestureDetector(
+                    onTap: () {
+                      state.reLoadImage();
+                    },
+                    child: Container(
+                      height: 200,
+                      width: 200,
+                      color: Colors.black12,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.broken_image, size: 40),
+                            SizedBox(height: 8),
+                            Text('Toca para reintentar'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+              }
+            },
           ),
         ),
       ),

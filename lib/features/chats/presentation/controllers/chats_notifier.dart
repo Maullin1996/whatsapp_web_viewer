@@ -121,4 +121,19 @@ class ChatsNotifier extends AsyncNotifier<List<Chat>> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(_loadChats);
   }
+
+  void reset() {
+    _realtimeSub?.cancel();
+    _realtimeSub = null;
+
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    _buffer.clear();
+    _isFlushing = false;
+
+    _buffer.clear();
+    _chatsByJid.clear();
+
+    _lastKnownTimestamp = 0;
+  }
 }

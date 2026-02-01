@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/app/providers.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/domain/repositories/auth_repository.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/presentation/providers/auth_state.dart';
+import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/chats_provider.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/messages_provider.dart';
 
 class AuthNotifier extends Notifier<AuthState> {
   late final AuthRepository _repository;
@@ -40,6 +42,9 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> logout() async {
     state = const AuthState.loading();
+
+    ref.read(messagesProvider.notifier).reset();
+    ref.read(chatsProvider.notifier).reset();
 
     final result = await _repository.logout();
 

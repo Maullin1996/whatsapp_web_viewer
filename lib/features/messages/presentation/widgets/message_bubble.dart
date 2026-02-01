@@ -78,83 +78,71 @@ class _ImagePreview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final urlAsync = ref.watch(imageUrlProvider(storagePath));
 
-    return urlAsync.when(
-      data: (url) => InkWell(
-        onTap: () {
-          final items = ref.read(chatImageItemsProvider);
-          if (items.isEmpty) return;
+    return InkWell(
+      onTap: () {
+        final items = ref.read(chatImageItemsProvider);
+        if (items.isEmpty) return;
 
-          final initialIndex = findInitialIndex(
-            items: items,
-            storagePath: storagePath,
-          );
+        final initialIndex = findInitialIndex(
+          items: items,
+          storagePath: storagePath,
+        );
 
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ImageDetailPage(initialIndex: initialIndex),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: RepaintBoundary(
-                child: ExtendedImage.network(
-                  url,
-                  fit: BoxFit.cover,
-                  cache: true,
-                  border: Border.all(color: Colors.transparent, width: 0),
-                  borderRadius: BorderRadius.circular(6),
-                  loadStateChanged: (ExtendedImageState state) {
-                    switch (state.extendedImageLoadState) {
-                      case LoadState.loading:
-                        return Container(
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ImageDetailPage(initialIndex: initialIndex),
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: RepaintBoundary(
+              child: ExtendedImage.network(
+                urlAsync,
+                fit: BoxFit.cover,
+                cache: true,
+                border: Border.all(color: Colors.transparent, width: 0),
+                borderRadius: BorderRadius.circular(6),
+                loadStateChanged: (ExtendedImageState state) {
+                  switch (state.extendedImageLoadState) {
+                    case LoadState.loading:
+                      return Container(
+                        height: 200,
+                        color: Colors.black12,
+                        child: const Center(child: CircularProgressIndicator()),
+                      );
+                    case LoadState.completed:
+                      return null; // Muestra la imagen normalmente
+                    case LoadState.failed:
+                      return GestureDetector(
+                        onTap: () {
+                          state.reLoadImage();
+                        },
+                        child: Container(
                           height: 200,
                           color: Colors.black12,
                           child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      case LoadState.completed:
-                        return null; // Muestra la imagen normalmente
-                      case LoadState.failed:
-                        return GestureDetector(
-                          onTap: () {
-                            state.reLoadImage();
-                          },
-                          child: Container(
-                            height: 200,
-                            color: Colors.black12,
-                            child: const Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.broken_image, size: 40),
-                                  SizedBox(height: 8),
-                                  Text('Toca para reintentar'),
-                                ],
-                              ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.broken_image, size: 40),
+                                SizedBox(height: 8),
+                                Text('Toca para reintentar'),
+                              ],
                             ),
                           ),
-                        );
-                    }
-                  },
-                ),
+                        ),
+                      );
+                  }
+                },
               ),
             ),
           ),
         ),
       ),
-      error: (_, _) => Center(
-        child: Container(
-          height: 200,
-          color: Colors.black12,
-          child: const Icon(Icons.broken_image),
-        ),
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }

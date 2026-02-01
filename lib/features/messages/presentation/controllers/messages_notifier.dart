@@ -31,12 +31,12 @@ class MessagesNotifier extends AsyncNotifier<List<Message>> {
     final chat = ref.watch(activeChatProvider);
 
     if (chat == null) {
-      _reset();
+      reset();
       return const [];
     }
 
     if (_activeChatJid != chat.chatJid) {
-      _reset();
+      reset();
       _activeChatJid = chat.chatJid;
       await _loadInitial(chat.chatJid);
     }
@@ -168,7 +168,7 @@ class MessagesNotifier extends AsyncNotifier<List<Message>> {
     _isFlushing = false;
   }
 
-  void _reset() {
+  void reset() {
     _newMessagesSub?.cancel();
     _newMessagesSub = null;
 
