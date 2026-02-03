@@ -11,7 +11,9 @@ class ImageZoomController {
 
   void zoomIn() => _setScale(scale * 1.25);
   void zoomOut() => _setScale(scale * 0.8);
-  void reset() => _setScale(scale * 1.0);
+  void reset() {
+    tc.value = Matrix4.identity();
+  }
 
   void onScroll(PointerScrollEvent e) {
     if (e.scrollDelta.dy < 0) {

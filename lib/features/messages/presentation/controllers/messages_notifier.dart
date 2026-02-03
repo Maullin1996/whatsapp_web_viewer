@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/active_chat_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/messages_page.dart';
@@ -8,22 +9,34 @@ import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers
 
 class MessagesNotifier extends AsyncNotifier<List<Message>> {
   static const _pageSize = 50;
+
   final List<Message> _items = [];
+
+  //BATCHING
+  final List<Message> _buffer = [];
+  Timer? _flushTimer;
+  bool _isFlushing = false;
+
+  StreamSubscription<Message>? _newMessagesSub;
+
   Object? _cursor;
   bool _isLoadingMore = false;
+  bool _hasMore = true;
   String? _activeChatJid;
+
+  int _lastKnownTimestamp = 0;
 
   @override
   FutureOr<List<Message>> build() async {
     final chat = ref.watch(activeChatProvider);
 
     if (chat == null) {
-      _reset();
+      reset();
       return const [];
     }
 
     if (_activeChatJid != chat.chatJid) {
-      _reset();
+      reset();
       _activeChatJid = chat.chatJid;
       await _loadInitial(chat.chatJid);
     }
@@ -32,12 +45,13 @@ class MessagesNotifier extends AsyncNotifier<List<Message>> {
   }
 
   // =========================
-  // Acciones públicas
+  // PAGINACIÓN
   // =========================
 
   Future<void> loadMore() async {
     if (_isLoadingMore) return;
-    if (_cursor == null) return; // no hay más páginas
+    if (!_hasMore) return;
+    if (_cursor == null) return;
     if (_activeChatJid == null) return;
 
     _isLoadingMore = true;
@@ -56,15 +70,19 @@ class MessagesNotifier extends AsyncNotifier<List<Message>> {
       },
       (page) {
         _cursor = page.nextCursor;
-        _items.addAll(page.items);
+        _hasMore = page.nextCursor != null;
+
+        if (page.items.isNotEmpty) {
+          _items.addAll(page.items);
+          state = AsyncData(List.unmodifiable(_items));
+        }
         _isLoadingMore = false;
-        state = AsyncData(List.unmodifiable(_items));
       },
     );
   }
 
   // =========================
-  // Internos
+  // CARGA INICIAL
   // =========================
 
   Future<void> _loadInitial(String chatJid) async {
@@ -83,16 +101,89 @@ class MessagesNotifier extends AsyncNotifier<List<Message>> {
           ..clear()
           ..addAll(page.items);
         _cursor = page.nextCursor;
+        _hasMore = page.nextCursor != null;
+
+        _lastKnownTimestamp = _items.isNotEmpty
+            ? _items.first.messageTimestamp
+            : 0;
+
         state = AsyncData(List.unmodifiable(_items));
+
+        _startRealtime(chatJid);
       },
     );
   }
 
-  void _reset() {
+  // =========================
+  // REALTIME
+  // =========================
+
+  void _startRealtime(String chatJid) {
+    _newMessagesSub?.cancel();
+
+    final repo = ref.read(messagesRepositoryProvider);
+
+    _newMessagesSub = repo
+        .listenNewMessages(
+          chatJid: chatJid,
+          afterTimestamp: _lastKnownTimestamp,
+        )
+        .listen(_onRealtimerMessage);
+  }
+
+  void _onRealtimerMessage(Message message) {
+    if (message.messageTimestamp <= _lastKnownTimestamp) return;
+    _buffer.add(message);
+    _scheduleFlush();
+  }
+
+  // =========================
+  // BATCHING
+  // =========================
+
+  void _scheduleFlush() {
+    if (_isFlushing) return;
+    _flushTimer?.cancel();
+    _flushTimer = Timer(const Duration(milliseconds: 200), _flushBuffer);
+  }
+
+  void _flushBuffer() {
+    if (_buffer.isEmpty) return;
+
+    _isFlushing = true;
+
+    final batch = List<Message>.from(_buffer);
+    _buffer.clear();
+
+    for (final msg in batch) {
+      final exists = _items.any((m) => m.id == msg.id);
+      if (!exists) {
+        _items.insert(0, msg); // reverse:true
+        _lastKnownTimestamp = _lastKnownTimestamp < msg.messageTimestamp
+            ? msg.messageTimestamp
+            : _lastKnownTimestamp;
+      }
+    }
+    state = AsyncData(List.unmodifiable(_items));
+    _isFlushing = false;
+  }
+
+  void reset() {
+    _newMessagesSub?.cancel();
+    _newMessagesSub = null;
+
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    _buffer.clear();
+    _isFlushing = false;
+
     _items.clear();
     _cursor = null;
+    _hasMore = true;
     _isLoadingMore = false;
     _activeChatJid = null;
+    _lastKnownTimestamp = 0;
+
     state = const AsyncData([]);
   }
 }

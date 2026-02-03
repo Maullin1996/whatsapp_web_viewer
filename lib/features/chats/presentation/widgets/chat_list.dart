@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/domain/entities/chat.dart';
@@ -248,7 +247,7 @@ class _CustonGroupContainerState extends State<CustonGroupContainer> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${widget.chat.count} mensajes',
+                      '${widget.chat.totalImages} mensajes',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],

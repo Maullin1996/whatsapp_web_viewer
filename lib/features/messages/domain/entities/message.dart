@@ -5,19 +5,17 @@ class Message {
   final String? caption;
   final String? storagePath;
   final bool hasMedia;
-  final int messageTimestamp;
-  final String shiftName;
-  final String localTime;
+  final int messageTimestamp; // fuente de verdad
+  final String localTime; // solo UI
 
   Message({
     required this.id,
+    required this.chatJid,
     required this.senderName,
     this.caption,
     this.storagePath,
     required this.hasMedia,
     required this.messageTimestamp,
-    required this.chatJid,
-    required this.shiftName,
     required this.localTime,
   });
 

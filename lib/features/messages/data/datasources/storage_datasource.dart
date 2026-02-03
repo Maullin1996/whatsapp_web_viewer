@@ -5,7 +5,10 @@ class StorageDatasource {
 
   const StorageDatasource(this._storage);
 
-  Future<String> getDownloadUrl(String storagePath) {
-    return _storage.ref(storagePath).getDownloadURL();
+  String getDownloadUrl(String storagePath) {
+    final bucket = _storage.bucket;
+    final encodedPath = Uri.encodeComponent(storagePath);
+
+    return 'https://firebasestorage.googleapis.com/v0/b/$bucket/o/$encodedPath?alt=media';
   }
 }

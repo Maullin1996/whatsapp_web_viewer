@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:whatsapp_monitor_viewer/core/errors/failure.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/messages_page.dart';
 
 abstract class MessagesRepository {
@@ -12,5 +13,10 @@ abstract class MessagesRepository {
     required String chatJid,
     required Object cursor,
     int limit = 50,
+  });
+
+  Stream<Message> listenNewMessages({
+    required String chatJid,
+    required int afterTimestamp,
   });
 }

@@ -1,13 +1,13 @@
 class ImageViewItem {
-  final String url;
+  final String storagePath;
   final String senderName;
   final int messageTimestamp;
-  final String? shiftName;
+  final String localTime;
 
   ImageViewItem({
-    required this.url,
+    required this.storagePath,
     required this.senderName,
     required this.messageTimestamp,
-    this.shiftName,
+    required this.localTime,
   });
 }

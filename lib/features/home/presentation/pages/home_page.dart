@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/active_chat_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/widgets/chat_list.dart';
-import 'package:whatsapp_monitor_viewer/features/home/widgets/custom_message_group.dart';
+import 'package:whatsapp_monitor_viewer/features/home/presentation/widgets/custom_message_group.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/chat_header.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_list.dart';
 
@@ -16,7 +16,7 @@ class HomePage extends StatelessWidget {
       body: Row(
         children: [
           Container(color: Colors.white, width: 370, child: ChatList()),
-          const VerticalDivider(width: 1),
+          const VerticalDivider(width: 1, color: Color.fromARGB(16, 0, 0, 0)),
           Expanded(
             child: Consumer(
               builder: (context, ref, _) {

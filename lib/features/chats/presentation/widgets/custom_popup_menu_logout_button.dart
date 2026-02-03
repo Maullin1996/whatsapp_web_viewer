@@ -27,20 +27,52 @@ class CustomPopupMenuLogoutButton extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => const [
-        PopupMenuItem(
+        PopupMenuItem<_ChatMenuAction>(
           value: _ChatMenuAction.logout,
-          child: Row(
-            children: [
-              Icon(Icons.logout_rounded),
-              SizedBox(width: 8),
-              Text(
-                'Cerrar sesión',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+          padding: EdgeInsets.zero,
+          child: _HoverMenuItem(
+            icon: Icons.logout_rounded,
+            text: 'Cerrar sesión',
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HoverMenuItem extends StatefulWidget {
+  final IconData icon;
+  final String text;
+  const _HoverMenuItem({required this.icon, required this.text});
+
+  @override
+  State<_HoverMenuItem> createState() => __HoverMenuItemState();
+}
+
+class __HoverMenuItemState extends State<_HoverMenuItem> {
+  bool _isHovering = false;
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        color: _isHovering ? Colors.red.withAlpha(30) : Colors.transparent,
+        child: Row(
+          children: [
+            Icon(widget.icon, color: _isHovering ? Colors.red : Colors.black),
+            const SizedBox(width: 8),
+            Text(
+              widget.text,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: _isHovering ? Colors.red : Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

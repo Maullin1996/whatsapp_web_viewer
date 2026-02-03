@@ -3,7 +3,7 @@ class RawMessageModel {
   final String chatJid;
   final String senderName;
   final String? caption;
-  final String shiftName;
+
   final String localTime;
 
   final bool hasMedia;
@@ -19,7 +19,6 @@ class RawMessageModel {
     required this.hasMedia,
     required this.messageTimestamp,
     required this.chatJid,
-    required this.shiftName,
     required this.localTime,
   });
 
@@ -33,7 +32,6 @@ class RawMessageModel {
       caption: data['caption'] as String?,
       storagePath: data['storagePath'] as String?,
       localTime: data['localTime'] as String,
-      shiftName: data['shiftName'] as String,
     );
   }
 }

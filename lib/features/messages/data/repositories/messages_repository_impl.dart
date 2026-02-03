@@ -34,7 +34,6 @@ class MessagesRepositoryImpl implements MessagesRepository {
                 caption: raw.caption,
                 storagePath: raw.storagePath,
                 localTime: raw.localTime,
-                shiftName: raw.shiftName,
               ),
             )
             .toList(),
@@ -68,12 +67,22 @@ class MessagesRepositoryImpl implements MessagesRepository {
                 caption: raw.caption,
                 storagePath: raw.storagePath,
                 localTime: raw.localTime,
-                shiftName: raw.shiftName,
               ),
             )
             .toList(),
         nextCursor: page.lastDoc,
       ),
+    );
+  }
+
+  @override
+  Stream<Message> listenNewMessages({
+    required String chatJid,
+    required int afterTimestamp,
+  }) {
+    return datasource.listemNewMessages(
+      chatJid: chatJid,
+      afterTimestamp: afterTimestamp,
     );
   }
 }

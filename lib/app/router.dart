@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/presentation/pages/login_page.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/auth/presentation/providers/auth_state.dart';
-import 'package:whatsapp_monitor_viewer/features/home/presentation/home_page.dart';
+import 'package:whatsapp_monitor_viewer/features/home/presentation/pages/home_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);

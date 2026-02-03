@@ -1,24 +1,27 @@
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:whatsapp_monitor_viewer/features/images/presentation/controllers/image_zoom_controller.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_monitor_viewer/core/time/shifts.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/controllers/image_zoom_controller.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/image_view_item.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/chat_image_items_provider.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/image_url_provider.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/messages_provider.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_controler_actions.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/nav_button.dart';
 
-class ImageDetailPage extends StatefulWidget {
+class ImageDetailPage extends ConsumerStatefulWidget {
   final int initialIndex;
-  final List<ImageViewItem> items;
 
-  const ImageDetailPage({
-    super.key,
-    required this.initialIndex,
-    required this.items,
-  });
+  const ImageDetailPage({super.key, required this.initialIndex});
 
   @override
-  State<ImageDetailPage> createState() => _ImageDetailPageState();
+  ConsumerState<ImageDetailPage> createState() => _ImageDetailPageState();
 }
 
-class _ImageDetailPageState extends State<ImageDetailPage> {
+class _ImageDetailPageState extends ConsumerState<ImageDetailPage> {
   late final PageController _controller;
   late final ImageZoomController _zoom;
   late int _index;
@@ -38,142 +41,335 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
     super.dispose();
   }
 
-  void _goNext() {
-    if (_index < widget.items.length + 1) {
-      _controller.nextPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  void _goPrev() {
-    if (_index > 0) {
-      _controller.previousPage(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      );
+  void _onPageChanged(int index) {
+    setState(() => _index = index);
+    _zoom.reset();
+    final items = ref.read(chatImageItemsProvider);
+    if (index >= items.length - 3) {
+      ref.read(messagesProvider.notifier).loadMore();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          /// ---------- IMAGE ----------
-          Positioned.fill(
-            child: PageView.builder(
-              controller: _controller,
-              itemCount: widget.items.length,
-              onPageChanged: (value) => setState(() => _index = value),
-              itemBuilder: (_, index) {
-                final item = widget.items[index];
-                return Center(
-                  child: Listener(
-                    onPointerSignal: (event) {
-                      if (event is PointerScrollEvent) {
-                        _zoom.onScroll(event);
-                      }
+    final items = ref.watch(chatImageItemsProvider);
+    if (items.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final safeIndex = _index.clamp(0, items.length - 1);
+    final item = items[safeIndex];
+    final date = DateTime.fromMillisecondsSinceEpoch(
+      item.messageTimestamp,
+    ).toLocal();
+
+    final shift = getCurrentShift(date);
+    final shiftLabel = shiftNames[shift]!;
+
+    return FocusableActionDetector(
+      autofocus: true,
+      shortcuts: {
+        LogicalKeySet(LogicalKeyboardKey.arrowRight): const NextImageIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowLeft):
+            const PreviousImageIntent(),
+        LogicalKeySet(LogicalKeyboardKey.escape): const CloseViewerIntent(),
+        LogicalKeySet(LogicalKeyboardKey.equal): const ZoomInIntent(),
+        LogicalKeySet(LogicalKeyboardKey.minus): const ZoomOutIntent(),
+        LogicalKeySet(LogicalKeyboardKey.digit0): const ZoomResetIntent(),
+      },
+      actions: {
+        NextImageIntent: CallbackAction<NextImageIntent>(
+          onInvoke: (_) {
+            if (_index < items.length - 1) {
+              _controller.nextPage(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              );
+            }
+            return null;
+          },
+        ),
+        PreviousImageIntent: CallbackAction<PreviousImageIntent>(
+          onInvoke: (_) {
+            if (_index > 0) {
+              _controller.previousPage(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              );
+            }
+            return null;
+          },
+        ),
+        CloseViewerIntent: CallbackAction<CloseViewerIntent>(
+          onInvoke: (_) {
+            Navigator.pop(context);
+            return null;
+          },
+        ),
+        ZoomInIntent: CallbackAction<ZoomInIntent>(
+          onInvoke: (_) {
+            _zoom.zoomIn();
+            return null;
+          },
+        ),
+        ZoomOutIntent: CallbackAction<ZoomOutIntent>(
+          onInvoke: (_) {
+            _zoom.zoomOut();
+            return null;
+          },
+        ),
+        ZoomResetIntent: CallbackAction<ZoomResetIntent>(
+          onInvoke: (_) {
+            _zoom.reset();
+            return null;
+          },
+        ),
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            _ViwerTopBar(
+              shift: shiftLabel,
+              name: item.senderName,
+              localTime: item.localTime,
+              zoomOut: _zoom.zoomOut,
+              zoomIn: _zoom.zoomIn,
+              zoomRest: _zoom.reset,
+              close: () => Navigator.pop(context),
+            ),
+            Expanded(
+              child: _ImagePager(
+                currentIndex: _index,
+                controller: _controller,
+                items: items,
+                zoom: _zoom,
+                onPageChanged: _onPageChanged,
+              ),
+            ),
+            _ImageIndexIndicator(index: _index, total: items.length),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImageIndexIndicator extends StatelessWidget {
+  final int index;
+  final int total;
+  const _ImageIndexIndicator({required this.index, required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: const Color.fromARGB(167, 211, 208, 208),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        child: Text('${index + 1} de $total'),
+      ),
+    );
+  }
+}
+
+class _ImagePager extends ConsumerWidget {
+  final PageController controller;
+  final List<ImageViewItem> items;
+  final ImageZoomController zoom;
+  final ValueChanged<int> onPageChanged;
+  final int currentIndex;
+
+  const _ImagePager({
+    required this.controller,
+    required this.items,
+    required this.zoom,
+    required this.onPageChanged,
+    required this.currentIndex,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: controller,
+          itemCount: items.length,
+          onPageChanged: onPageChanged,
+          itemBuilder: (_, index) {
+            final item = items[index];
+            final urlAsync = ref.watch(imageUrlProvider(item.storagePath));
+            return _ImageCanvas(zoom: zoom, urlAsync: urlAsync);
+          },
+        ),
+        if (currentIndex > 0)
+          Positioned(
+            left: 12,
+            top: 0,
+            bottom: 0,
+            child: NavButton(
+              icon: Icons.chevron_left,
+              onTap: () => controller.previousPage(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              ),
+            ),
+          ),
+        if (currentIndex < items.length - 1)
+          Positioned(
+            right: 12,
+            top: 0,
+            bottom: 0,
+            child: NavButton(
+              icon: Icons.chevron_right,
+              onTap: () => controller.nextPage(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _ImageCanvas extends StatelessWidget {
+  final ImageZoomController zoom;
+  final String urlAsync;
+  const _ImageCanvas({required this.zoom, required this.urlAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Listener(
+        onPointerSignal: (event) {
+          if (event is PointerScrollEvent) {
+            zoom.onScroll(event);
+          }
+        },
+        child: InteractiveViewer(
+          transformationController: zoom.tc,
+          minScale: ImageZoomController.minScale,
+          maxScale: ImageZoomController.maxScale,
+          panEnabled: zoom.scale > 1.0,
+          scaleEnabled: false,
+          child: ExtendedImage.network(
+            urlAsync,
+            fit: BoxFit.contain,
+            cache: true,
+            cacheWidth: 1600,
+            cacheHeight: 1600,
+            loadStateChanged: (ExtendedImageState state) {
+              switch (state.extendedImageLoadState) {
+                case LoadState.loading:
+                  return SizedBox(
+                    height: 200,
+                    width: 200,
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
+                case LoadState.completed:
+                  return null; // Muestra la imagen normalmente
+                case LoadState.failed:
+                  return GestureDetector(
+                    onTap: () {
+                      state.reLoadImage();
                     },
-                    child: InteractiveViewer(
-                      transformationController: _zoom.tc,
-                      minScale: ImageZoomController.minScale,
-                      maxScale: ImageZoomController.maxScale,
-                      panEnabled: _zoom.scale > 1.0,
-                      scaleEnabled: false,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 80),
-                        child: Image.network(
-                          cacheWidth: 1600,
-                          cacheHeight: 1600,
-                          item.url,
-                          fit: BoxFit.contain,
-                          webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              height: 200,
-                              color: Colors.black12,
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          },
-                          errorBuilder: (_, _, _) => Container(
-                            height: 200,
-                            color: Colors.black12,
-                            child: const Center(
-                              child: Icon(Icons.broken_image),
-                            ),
-                          ),
+                    child: SizedBox(
+                      height: 200,
+                      width: 200,
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.broken_image, size: 40),
+                            SizedBox(height: 8),
+                            Text('Toca para reintentar'),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ViwerTopBar extends StatelessWidget {
+  final String name;
+  final String localTime;
+  final String shift;
+  final VoidCallback zoomOut;
+  final VoidCallback zoomIn;
+  final VoidCallback zoomRest;
+  final VoidCallback close;
+
+  const _ViwerTopBar({
+    required this.name,
+    required this.localTime,
+    required this.shift,
+    required this.zoomOut,
+    required this.zoomIn,
+    required this.zoomRest,
+    required this.close,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      child: Row(
+        children: [
+          ClipOval(
+            child: Image.asset(
+              'assets/images/blank-profile.png',
+              width: 55,
+              fit: BoxFit.cover,
+              cacheWidth: 110,
             ),
           ),
-
-          /// ---------- ZOOM ----------
-          Positioned(
-            top: 16,
-            right: 64,
-            child: Row(
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  tooltip: 'Zoom -',
-                  onPressed: _zoom.zoomOut,
-                  icon: const Icon(Icons.remove),
+                SelectableText(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
-                IconButton(
-                  tooltip: 'Reset',
-                  onPressed: _zoom.reset,
-                  icon: const Icon(Icons.refresh),
-                ),
-                IconButton(
-                  tooltip: 'Zoom +',
-                  onPressed: _zoom.zoomIn,
-                  icon: const Icon(Icons.add),
-                ),
+                SelectableText(localTime, style: const TextStyle(fontSize: 16)),
+                SelectableText(shift, style: const TextStyle(fontSize: 16)),
               ],
             ),
           ),
-
-          /// ---------- CLOSE ----------
-          Positioned(
-            top: 16,
-            right: 16,
-            child: IconButton(
-              tooltip: 'Cerrar',
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close, size: 28),
-            ),
+          IconButton(
+            tooltip: 'Zoom -',
+            onPressed: zoomOut,
+            icon: const Icon(Icons.zoom_out_rounded, size: 28),
           ),
-
-          /// ---------- NAV LEFT ----------
-          if (_index > 0)
-            Positioned(
-              left: 12,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: NavButton(icon: Icons.chevron_left, onTap: _goPrev),
-              ),
-            ),
-
-          /// ---------- NAV RIGHT ----------
-          if (_index < widget.items.length - 1)
-            Positioned(
-              right: 12,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: NavButton(icon: Icons.chevron_right, onTap: _goNext),
-              ),
-            ),
+          IconButton(
+            tooltip: 'Reset',
+            onPressed: zoomRest,
+            icon: const Icon(Icons.refresh, size: 28),
+          ),
+          IconButton(
+            tooltip: 'Zoom +',
+            onPressed: zoomIn,
+            icon: const Icon(Icons.zoom_in_rounded, size: 28),
+          ),
+          IconButton(
+            tooltip: 'Cerrar',
+            onPressed: close,
+            icon: const Icon(Icons.close, size: 28),
+          ),
         ],
       ),
     );
