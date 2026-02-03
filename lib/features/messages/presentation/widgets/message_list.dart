@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_list_loading.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/helpers/format_day_label.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/message_list_scroll_controller.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/go_to_latest_message_button.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_appear_animation.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_bubble.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/messages_provider.dart';
 
@@ -137,16 +139,19 @@ class _MessageListState extends ConsumerState<MessageList> {
                                 ),
                               ),
                             ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: showSenderName ? 10 : 2,
-                              bottom: 12,
-                              left: 12,
-                              right: 12,
-                            ),
-                            child: MessageBubble(
-                              message: msg,
-                              showSenderName: showSenderName,
+                          MessageAppearAnimation(
+                            index: index,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: showSenderName ? 10 : 2,
+                                bottom: 12,
+                                left: 12,
+                                right: 12,
+                              ),
+                              child: MessageBubble(
+                                message: msg,
+                                showSenderName: showSenderName,
+                              ),
                             ),
                           ),
                         ],
@@ -192,13 +197,13 @@ class _MessageListState extends ConsumerState<MessageList> {
         );
       },
       loading: () => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             fit: BoxFit.cover,
-            image: const AssetImage('assets/images/fondo.png'),
+            image: AssetImage('assets/images/fondo.png'),
           ),
         ),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: const MessageListLoading()),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:whatsapp_monitor_viewer/core/errors/failure.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/data/datasources/messages_firestore_datasource.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/messages_page.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/domain/helpers/to_domain.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/repositories/messages_repository.dart';
 
 class MessagesRepositoryImpl implements MessagesRepository {
@@ -23,20 +24,7 @@ class MessagesRepositoryImpl implements MessagesRepository {
 
     return result.map(
       (page) => MessagesPage(
-        items: page.items
-            .map(
-              (raw) => Message(
-                id: raw.id,
-                senderName: raw.senderName,
-                hasMedia: raw.hasMedia,
-                messageTimestamp: raw.messageTimestamp,
-                chatJid: raw.chatJid,
-                caption: raw.caption,
-                storagePath: raw.storagePath,
-                localTime: raw.localTime,
-              ),
-            )
-            .toList(),
+        items: page.items.map((raw) => toDomain(raw)).toList(),
         nextCursor: page.lastDoc,
       ),
     );
@@ -56,20 +44,7 @@ class MessagesRepositoryImpl implements MessagesRepository {
 
     return result.map(
       (page) => MessagesPage(
-        items: page.items
-            .map(
-              (raw) => Message(
-                id: raw.id,
-                senderName: raw.senderName,
-                hasMedia: raw.hasMedia,
-                messageTimestamp: raw.messageTimestamp,
-                chatJid: raw.chatJid,
-                caption: raw.caption,
-                storagePath: raw.storagePath,
-                localTime: raw.localTime,
-              ),
-            )
-            .toList(),
+        items: page.items.map((raw) => toDomain(raw)).toList(),
         nextCursor: page.lastDoc,
       ),
     );

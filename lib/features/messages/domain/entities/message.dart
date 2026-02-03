@@ -5,8 +5,10 @@ class Message {
   final String? caption;
   final String? storagePath;
   final bool hasMedia;
-  final int messageTimestamp; // fuente de verdad
-  final String localTime; // solo UI
+  final int messageTimestamp;
+  final String localTime;
+  final String shift;
+  final String messageDate;
 
   Message({
     required this.id,
@@ -17,6 +19,8 @@ class Message {
     required this.hasMedia,
     required this.messageTimestamp,
     required this.localTime,
+    required this.shift,
+    required this.messageDate,
   });
 
   bool get isImage => hasMedia && storagePath != null;
