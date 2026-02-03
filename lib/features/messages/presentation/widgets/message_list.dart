@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_monitor_viewer/core/loading/message_list_loading.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_list_loading.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/helpers/format_day_label.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/message_list_scroll_controller.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/go_to_latest_message_button.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_monitor_viewer/core/loading/chats_loading_view.dart';
+import 'package:whatsapp_monitor_viewer/features/chats/presentation/widgets/chats_loading_view.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/domain/entities/chat.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/chat_search_query_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/widgets/chat_appear_animation.dart';

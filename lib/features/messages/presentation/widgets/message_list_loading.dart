@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_monitor_viewer/core/loading/app_shimmer.dart';
-import 'package:whatsapp_monitor_viewer/core/loading/message_bubble_skeleton.dart';
+import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_bubble_skeleton.dart';
 
 class MessageListLoading extends StatelessWidget {
   final int itemCount;
