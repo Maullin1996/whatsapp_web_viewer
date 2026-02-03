@@ -14,6 +14,7 @@ final chatImageItemsProvider = Provider<List<ImageViewItem>>((ref) {
             senderName: m.senderName,
             messageTimestamp: m.messageTimestamp,
             localTime: m.localTime,
+            shift: m.shift,
           ),
         )
         .toList(growable: false),

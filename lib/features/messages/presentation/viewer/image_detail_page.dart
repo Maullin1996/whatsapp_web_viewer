@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whatsapp_monitor_viewer/core/time/shifts.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/controllers/image_zoom_controller.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/image_view_item.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/chat_image_items_provider.dart';
@@ -58,12 +57,6 @@ class _ImageDetailPageState extends ConsumerState<ImageDetailPage> {
     }
     final safeIndex = _index.clamp(0, items.length - 1);
     final item = items[safeIndex];
-    final date = DateTime.fromMillisecondsSinceEpoch(
-      item.messageTimestamp,
-    ).toLocal();
-
-    final shift = getCurrentShift(date);
-    final shiftLabel = shiftNames[shift]!;
 
     return FocusableActionDetector(
       autofocus: true,
@@ -129,7 +122,7 @@ class _ImageDetailPageState extends ConsumerState<ImageDetailPage> {
         body: Column(
           children: [
             _ViwerTopBar(
-              shift: shiftLabel,
+              shift: item.shift,
               name: item.senderName,
               localTime: item.localTime,
               zoomOut: _zoom.zoomOut,

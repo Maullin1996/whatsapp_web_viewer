@@ -42,10 +42,9 @@ dependencies:
   freezed_annotation: ^3.1.0
   go_router: ^17.0.1
   json_serializable: ^6.7.1
+  shimmer: ^3.0.0
 
 dev_dependencies:
-
-  # CAMBIA ESTOS:
   build_runner: ^2.4.7 # Versión anterior compatible
   flutter_lints: ^6.0.0
   flutter_test:

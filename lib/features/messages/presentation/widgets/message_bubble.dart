@@ -20,9 +20,6 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = DateTime.fromMillisecondsSinceEpoch(
-      message.messageTimestamp,
-    ).toLocal().toString().substring(11, 16);
     return Container(
       constraints: const BoxConstraints(maxWidth: 420),
       padding: const EdgeInsets.all(8),
@@ -64,7 +61,7 @@ class MessageBubble extends StatelessWidget {
           Align(
             alignment: Alignment.bottomRight,
             child: Text(
-              time,
+              message.messageDate,
               style: Theme.of(
                 context,
               ).textTheme.labelSmall?.copyWith(color: Colors.grey),
@@ -109,6 +106,8 @@ class _ImagePreview extends ConsumerWidget {
               child: ExtendedImage.network(
                 urlAsync,
                 fit: BoxFit.cover,
+                cacheHeight: 800,
+                cacheWidth: 800,
                 cache: true,
                 border: Border.all(color: Colors.transparent, width: 0),
                 borderRadius: BorderRadius.circular(6),

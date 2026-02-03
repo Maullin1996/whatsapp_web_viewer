@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_monitor_viewer/core/loading/chats_loading_view.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/domain/entities/chat.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/provider/chat_search_query_provider.dart';
+import 'package:whatsapp_monitor_viewer/features/chats/presentation/widgets/chat_appear_animation.dart';
 import 'package:whatsapp_monitor_viewer/features/chats/presentation/widgets/custom_popup_menu_logout_button.dart';
 import 'package:whatsapp_monitor_viewer/helpers/format_time.dart';
 import 'package:whatsapp_monitor_viewer/helpers/map_failure_to_message.dart';
@@ -15,13 +17,13 @@ class ChatList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(chatsProvider);
     final activeChat = ref.watch(activeChatProvider);
+
     return Column(
       children: [
         _ChatHeader(),
         _ChateSearchBar(),
         state.when(
-          loading: () =>
-              const Expanded(child: Center(child: CircularProgressIndicator())),
+          loading: () => const Expanded(child: ChatsListLoading()),
           error: (error, _) =>
               Expanded(child: Center(child: Text(mapFailureToMessage(error)))),
           data: (chats) => Expanded(
@@ -129,14 +131,16 @@ class _ChatSearchResults extends ConsumerWidget {
         itemBuilder: (context, index) {
           final chat = results[index];
           final isActive = activeChat?.chatJid == chat.chatJid;
-          return CustonGroupContainer(
-            isActive: isActive,
-            chat: chat,
-            time: formatTime(chat.lastMessageAt, context),
-            onTap: () {
-              ref.read(activeChatProvider.notifier).select(chat);
-              ref.read(chatSearchQueryProvider.notifier).state = '';
-            },
+          return ChatAppearAnimation(
+            child: CustonGroupContainer(
+              isActive: isActive,
+              chat: chat,
+              time: formatTime(chat.lastMessageAt, context),
+              onTap: () {
+                ref.read(activeChatProvider.notifier).select(chat);
+                ref.read(chatSearchQueryProvider.notifier).state = '';
+              },
+            ),
           );
         },
         separatorBuilder: (_, _) => const Divider(height: 1),
@@ -162,14 +166,16 @@ class _ChatMainList extends ConsumerWidget {
 
         final time = formatTime(chat.lastMessageAt, context);
 
-        return CustonGroupContainer(
-          isActive: isActive,
-          chat: chat,
-          time: time,
-          onTap: () {
-            ref.read(activeChatProvider.notifier).select(chat);
-            ref.read(chatSearchQueryProvider.notifier).state = '';
-          },
+        return ChatAppearAnimation(
+          child: CustonGroupContainer(
+            isActive: isActive,
+            chat: chat,
+            time: time,
+            onTap: () {
+              ref.read(activeChatProvider.notifier).select(chat);
+              ref.read(chatSearchQueryProvider.notifier).state = '';
+            },
+          ),
         );
       },
     );
