@@ -28,7 +28,7 @@ class _MessageListState extends ConsumerState<MessageList> {
 
     _controller.animateTo(
       0.0,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 800),
       curve: Curves.easeOut,
     );
   }
@@ -114,7 +114,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                               prevMsg.messageTimestamp,
                             ).toLocal().day;
 
-                    return KeyedSubtree(
+                    return RepaintBoundary(
                       key: ValueKey(msg.id),
                       child: Column(
                         children: [

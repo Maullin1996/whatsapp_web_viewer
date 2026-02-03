@@ -247,7 +247,7 @@ class _CustonGroupContainerState extends State<CustonGroupContainer> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${widget.chat.count} mensajes',
+                      '${widget.chat.totalImages} mensajes',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],

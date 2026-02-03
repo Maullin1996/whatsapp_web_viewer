@@ -264,10 +264,9 @@ class _ImageCanvas extends StatelessWidget {
             loadStateChanged: (ExtendedImageState state) {
               switch (state.extendedImageLoadState) {
                 case LoadState.loading:
-                  return Container(
+                  return SizedBox(
                     height: 200,
                     width: 200,
-                    color: Colors.black12,
                     child: const Center(child: CircularProgressIndicator()),
                   );
                 case LoadState.completed:
@@ -277,10 +276,9 @@ class _ImageCanvas extends StatelessWidget {
                     onTap: () {
                       state.reLoadImage();
                     },
-                    child: Container(
+                    child: SizedBox(
                       height: 200,
                       width: 200,
-                      color: Colors.black12,
                       child: const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,

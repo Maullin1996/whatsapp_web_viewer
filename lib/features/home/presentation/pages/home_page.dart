@@ -16,7 +16,7 @@ class HomePage extends StatelessWidget {
       body: Row(
         children: [
           Container(color: Colors.white, width: 370, child: ChatList()),
-          const VerticalDivider(width: 1),
+          const VerticalDivider(width: 1, color: Color.fromARGB(16, 0, 0, 0)),
           Expanded(
             child: Consumer(
               builder: (context, ref, _) {

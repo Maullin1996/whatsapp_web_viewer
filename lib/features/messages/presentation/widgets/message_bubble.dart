@@ -29,6 +29,15 @@ class MessageBubble extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 0.5,
+            offset: Offset(0, 0.2),
+            color: Colors.black38,
+            spreadRadius: 0.5,
+            blurStyle: BlurStyle.normal,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,12 +55,9 @@ class MessageBubble extends StatelessWidget {
             ),
           if (message.isImage) _ImagePreview(storagePath: message.storagePath!),
           if (message.caption != null && message.caption!.isNotEmpty)
-            Container(
-              margin: EdgeInsets.only(bottom: 8),
-              child: CustomRichText(
-                keyParam: 'Mensaje:  ',
-                valueParam: message.caption!,
-              ),
+            CustomRichText(
+              keyParam: 'Mensaje:  ',
+              valueParam: message.caption!,
             ),
           MessageInformationWidget(message: message),
           const SizedBox(height: 4),
@@ -78,7 +84,7 @@ class _ImagePreview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final urlAsync = ref.watch(imageUrlProvider(storagePath));
 
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         final items = ref.read(chatImageItemsProvider);
         if (items.isEmpty) return;

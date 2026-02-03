@@ -21,14 +21,18 @@ class ChatsRepositoryImpl implements ChatsRepository {
       for (final data in rows) {
         final chatJid = data['chatJid'] as String?;
         final groupName = data['groupName'] as String?;
-        final ts = data['messageTimestamp'];
+        final ts = data['lastMessageAt'];
+        final tI = data['totalImages'];
 
-        if (chatJid == null || groupName == null || ts == null) {
+        if (chatJid == null || groupName == null || ts == null || tI == null) {
           continue;
         }
 
         final timestamp = ts is int ? ts : int.tryParse(ts.toString());
-        if (timestamp == null) continue;
+
+        final totalImages = tI is int ? tI : int.tryParse(tI.toString());
+
+        if (timestamp == null || totalImages == null) continue;
 
         final existing = chatsByJid[chatJid];
 
@@ -37,14 +41,14 @@ class ChatsRepositoryImpl implements ChatsRepository {
             chatJid: chatJid,
             groupName: groupName,
             lastMessageAt: ts,
-            count: 1,
+            totalImages: tI,
           );
         } else {
           chatsByJid[chatJid] = Chat(
             chatJid: existing.chatJid,
             groupName: existing.groupName,
             lastMessageAt: existing.lastMessageAt,
-            count: existing.count + 1,
+            totalImages: tI,
           );
         }
       }
@@ -65,15 +69,18 @@ class ChatsRepositoryImpl implements ChatsRepository {
     return datasource.listenNewMessages().map((data) {
       final chatJid = data['chatJid'] as String;
       final groupName = data['groupName'] as String;
-      final ts = data['messageTimestamp'];
+      final ts = data['lastMessageAt'];
+      final tI = data['totalImages'];
 
       final timestamp = ts is int ? ts : int.parse(ts.toString());
+
+      final totalImages = tI is int ? tI : int.parse(tI.toString());
 
       return Chat(
         chatJid: chatJid,
         groupName: groupName,
         lastMessageAt: timestamp,
-        count: 1,
+        totalImages: totalImages,
       );
     });
   }
