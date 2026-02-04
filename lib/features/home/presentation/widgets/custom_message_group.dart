@@ -5,32 +5,29 @@ class CustomMessageGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 360),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // 🔑 clave
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 160),
-              child: Image.asset('assets/images/mensaje.png'),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 160),
+            child: Image.asset('assets/images/mensaje.png'),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Selecciona un grupo para continuar',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              fontSize: 28,
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Selecciona un grupo para continuar',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                fontSize: 28,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
