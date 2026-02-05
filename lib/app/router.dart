@@ -14,7 +14,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       return authState.when(
         loading: () => null,
-        authenticated: (_) => state.matchedLocation == '/home' ? null : '/home',
+        authenticated: (_) {
+          if (state.matchedLocation == '/login') return '/home';
+          return null;
+        },
         unauthenticated: () =>
             state.matchedLocation == '/login' ? null : '/login',
         error: (_) => '/login',
@@ -27,7 +30,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const HomePage(),
         routes: [
           GoRoute(
-            path: '/viewer/:index',
+            path: 'viewer/:index',
             builder: (context, state) {
               final index = int.parse(state.pathParameters['index']!);
               return ImageDetailPage(initialIndex: index);

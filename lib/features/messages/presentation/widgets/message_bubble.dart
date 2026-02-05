@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:go_router/go_router.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/domain/entities/message.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/helpers/find_initial_index.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/chat_image_items_provider.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/providers/image_url_provider.dart';
-import 'package:whatsapp_monitor_viewer/features/messages/presentation/viewer/image_detail_page.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/custom_rich_text.dart';
 import 'package:whatsapp_monitor_viewer/features/messages/presentation/widgets/message_information_widget.dart';
 
@@ -91,11 +91,7 @@ class _ImagePreview extends ConsumerWidget {
           storagePath: storagePath,
         );
 
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ImageDetailPage(initialIndex: initialIndex),
-          ),
-        );
+        context.push('/home/viewer/$initialIndex');
       },
       child: Padding(
         padding: const EdgeInsets.only(bottom: 6),
