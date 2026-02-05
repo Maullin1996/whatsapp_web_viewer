@@ -205,61 +205,73 @@ class _CustonGroupContainerState extends State<CustonGroupContainer> {
   @override
   Widget build(BuildContext context) {
     final baseColor = widget.isActive
-        ? const Color.fromARGB(202, 212, 211, 211)
+        ? const Color.fromARGB(159, 236, 234, 234)
         : Colors.transparent;
-    final hoverColor = Colors.grey.withValues(alpha: 0.15);
+    final hoverColor = const Color.fromARGB(
+      255,
+      133,
+      131,
+      131,
+    ).withValues(alpha: 0.15);
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: InkWell(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          color: _hovered ? hoverColor : baseColor,
-          child: Row(
-            children: [
-              ClipOval(
-                child: Image.asset(
-                  'assets/images/blank-profile.png',
-                  width: 55,
-                  fit: BoxFit.cover,
-                  cacheWidth: 110,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: InkWell(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            decoration: BoxDecoration(
+              color: _hovered ? hoverColor : baseColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+
+            child: Row(
+              children: [
+                ClipOval(
+                  child: Image.asset(
+                    'assets/images/blank-profile.png',
+                    width: 55,
+                    fit: BoxFit.cover,
+                    cacheWidth: 110,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.chat.groupName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.chat.groupName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        Text(
-                          widget.time,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${widget.chat.totalImages} mensajes',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                          Text(
+                            widget.time,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${widget.chat.totalImages} mensajes',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
