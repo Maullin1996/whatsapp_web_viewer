@@ -17,20 +17,47 @@ class HomePage extends StatelessWidget {
         children: [
           Container(color: Colors.white, width: 370, child: ChatList()),
           const VerticalDivider(width: 1, color: Color.fromARGB(16, 0, 0, 0)),
-          Expanded(
-            child: Consumer(
-              builder: (context, ref, _) {
-                final chat = ref.watch(activeChatProvider);
+          Flexible(
+            fit: FlexFit.tight,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Container(
+                  color: const Color.fromARGB(255, 240, 239, 236),
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final chat = ref.watch(activeChatProvider);
 
-                if (chat == null) {
-                  return Center(child: const CustomMessageGroup());
-                }
+                      if (chat == null) {
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            // ancho visual máximo del contenido
+                            const contentMaxWidth = 420.0;
 
-                return Column(
-                  children: const [
-                    ChatHeader(),
-                    Expanded(child: MessageList()),
-                  ],
+                            final sidePadding =
+                                constraints.maxWidth > contentMaxWidth
+                                ? (constraints.maxWidth - contentMaxWidth) / 2
+                                : 16.0;
+
+                            return Container(
+                              color: const Color.fromARGB(255, 240, 239, 236),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: sidePadding,
+                              ),
+                              alignment: Alignment.center,
+                              child: const CustomMessageGroup(),
+                            );
+                          },
+                        );
+                      }
+
+                      return Column(
+                        children: const [
+                          ChatHeader(),
+                          Expanded(child: MessageList()),
+                        ],
+                      );
+                    },
+                  ),
                 );
               },
             ),
